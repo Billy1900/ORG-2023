@@ -17,8 +17,6 @@
 #     <https://www.gnu.org/licenses/>.
 import asyncio
 import itertools
-import pandas as pd
-from struct import error
 import numpy as np
 from scipy.signal import find_peaks
 from scipy.stats import linregress
@@ -29,8 +27,8 @@ from typing import List, Optional, Dict
 from ready_trader_go import BaseAutoTrader, Instrument, Lifespan, Side
 
 
-LOT_SIZE = 40
-POSITION_LIMIT = 800
+LOT_SIZE = 10
+POSITION_LIMIT = 100
 VOLUME_LIMIT = 200
 TICK_SIZE_IN_CENTS = 100
 UPDATE_LIST_SIZE = 5
@@ -130,7 +128,6 @@ class AutoTrader(BaseAutoTrader):
        # Only recalculate average on new sequence number
         if sequence_number > self.order_update_number[instrument]:
             if instrument == Instrument.ETF:
-
                 ema_26 = self.calculate_ema(26,self.prev_ema_26)
                 ema_50 = self.calculate_ema(50,self.prev_ema_50)
                 ema_200 = self.calculate_ema(200,self.prev_ema_200)
@@ -312,7 +309,9 @@ class AutoTrader(BaseAutoTrader):
 
         if can:
             #self.logger.info("SELL Volume sent in is: %d Order ID is: %d Position: %d Volume: %d Bid Volume: %d Ask Volume: %d",order[1], id, self.order_book.position, self.order_book.volume, self.order_book.vol_bids, self.order_book.vol_asks)
-            self.send_insert_order(id, Side.SELL, price, order[1], order_type)
+            if order[1] > 0 and price > 0:
+                print("Order[1]:", order[1])
+                self.send_insert_order(id, Side.SELL, price, order[1], order_type)
 
     def calculate_market_price(self, instrument: int, ask_prices: List[int], bid_prices: List[int], ask_volumes: List[int], bid_volumes: List[int]) -> None:
 
@@ -468,9 +467,9 @@ class OrderBook():
         if self.num_orders < ORDER_LIMIT:
             if self.volume == VOLUME_LIMIT:
                 return [False, 1]
-            if self.position == POSITION_LIMIT:
+            if self.position >= POSITION_LIMIT:
                 return [False, 2]
-            if self.position + self.vol_bids == POSITION_LIMIT:
+            if self.position + self.vol_bids >= POSITION_LIMIT:
                 return [False, 3]
             if vol + self.volume > VOLUME_LIMIT:
                 vol = VOLUME_LIMIT - self.volume
@@ -506,9 +505,9 @@ class OrderBook():
         if self.num_orders < ORDER_LIMIT:
             if self.volume == VOLUME_LIMIT:
                 return [False, 1]
-            if self.position == -POSITION_LIMIT:
+            if self.position >= -POSITION_LIMIT:
                 return [False, 2]
-            if -self.position + self.vol_asks == POSITION_LIMIT:
+            if -self.position + self.vol_asks >= POSITION_LIMIT:
                 return [False, 3]
             if vol + self.volume > VOLUME_LIMIT:
                 vol = VOLUME_LIMIT - self.volume

@@ -1,9 +1,9 @@
 {
   "Engine": {
-    "MarketDataFile": "data/market_data1.csv",
+    "MarketDataFile": "data/market_data6.csv",
     "MarketEventInterval": 0.05,
     "MarketOpenDelay": 5.0,
-    "MatchEventsFile": "match_events_trader2.csv",
+    "MatchEventsFile": "match_events.csv",
     "ScoreBoardFile": "score_board.csv",
     "Speed": 1.0,
     "TickInterval": 0.25
